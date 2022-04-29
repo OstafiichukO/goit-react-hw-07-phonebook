@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as actions from './phonebook-actions';
+import * as actions from './pb-actions';
 
 axios.defaults.baseURL = 'http://localhost:4040';
 
@@ -23,12 +23,11 @@ export const deleteContact = contactId => dispatch => {
   axios
     .delete(`./contacts/${contactId}`)
     .then(() => dispatch(actions.deleteContactSuccess(contactId)))
-    .catch(error => dispatch(actions.deleteContactError(error)));
+    .catch(error => dispatch(actions.addContactError(error)));
 };
 
 export const fetchContacts = () => dispatch => {
   dispatch(actions.fetchContactRequest());
-
   axios
     .get('/contacts')
     .then(({ data }) => dispatch(actions.fetchContactSuccess(data)))
