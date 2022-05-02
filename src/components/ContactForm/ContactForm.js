@@ -4,38 +4,45 @@ import {
   StyledSpan,
   StyledInput,
   StyledButton,
-} from "./ContactForm.styled";
-import Notiflix from "notiflix";
+} from './ContactForm.styled';
+import Notiflix from 'notiflix';
 
-import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { addContact } from "../../redux/store";
-import { nanoid } from "nanoid";
-import * as storage from "../../services/LocalStorage";
+import { useState } from 'react';
+// import { useDispatch, useSelector } from 'react-redux';
+// import { addContact } from '../../redux/store';
+// import { nanoid } from 'nanoid';
+// import * as storage from '../../services/LocalStorage';
+
+import {
+  useCreateContactMutation,
+  useGetContactsQuery,
+} from 'redux/contactApi';
 
 const ContactForm = () => {
-  const dispatch = useDispatch();
-  const contacts = useSelector((state) => state.contacts.items);
-  const [name, setName] = useState("");
-  const [number, setNumber] = useState("");
+  // const dispatch = useDispatch();
+  // const contacts = useSelector(state => state.contacts.items);
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const { data } = useGetContactsQuery();
+  const [addContact] = useCreateContactMutation();
 
-  useEffect(() => {
-    storage.save("contacts", contacts);
-  }, [contacts]);
+  // useEffect(() => {
+  //   storage.save('contacts', contacts);
+  // }, [contacts]);
 
   const reset = () => {
-    setName("");
-    setNumber("");
+    setName('');
+    setPhone('');
   };
 
-  const handlleChange = (event) => {
+  const handlleChange = event => {
     switch (event.target.name) {
-      case "name":
+      case 'name':
         setName(event.currentTarget.value);
         break;
 
-      case "number":
-        setNumber(event.currentTarget.value);
+      case 'number':
+        setPhone(event.currentTarget.value);
         break;
 
       default:
@@ -43,16 +50,19 @@ const ContactForm = () => {
     }
   };
 
-  const handlleSubmit = (event) => {
+  const handlleSubmit = async event => {
     event.preventDefault();
-    const id = nanoid();
-    const duplicateName = contacts.reduce(
-      (acc, contact) => [...acc, contact.name],
-      []
-    );
-    duplicateName.includes(name)
+    // const id = nanoid();
+    // const duplicateName = contacts.reduce(
+    //   (acc, contact) => [...acc, contact.name],
+    //   []
+    // );
+    const duplicateName = await data.some(contact => {
+      return contact.name.toLowerCase().includes(name.toLocaleLowerCase());
+    });
+    duplicateName
       ? Notiflix.Notify.info(`${name} is already in contacts`)
-      : dispatch(addContact({ id: id, name: name, phone: number }));
+      : await addContact({ name, phone });
     reset();
   };
 
@@ -80,7 +90,7 @@ const ContactForm = () => {
             title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
             required
             onChange={handlleChange}
-            value={number}
+            value={phone}
           />
         </StyledLabel>
         <StyledButton type="submit">Add contact</StyledButton>

@@ -3,24 +3,26 @@ import {
   StyledInput,
   StyledSpan,
   StyledForm,
-} from "./Filter.styled";
+} from './Filter.styled';
 
-import { useSelector, useDispatch } from "react-redux";
-import { handlerFilter } from "../../redux/store";
+import { useDebouncedCallback } from 'use-debounce';
+import { useDispatch } from 'react-redux';
+import { changeFilter } from '../../redux/filterSlice';
 
 const Filter = () => {
-  const filter = useSelector((state) => state.contacts.filter);
   const dispatch = useDispatch();
-
-  const onChange = (e) => {
-    dispatch(handlerFilter(e.currentTarget.value));
-  };
+  const debouncedOnChange = useDebouncedCallback(value => {
+    dispatch(changeFilter(value));
+  }, 500);
 
   return (
     <StyledForm>
       <StyledLabel>
         <StyledSpan>Find contacts by name</StyledSpan>
-        <StyledInput type="text" onChange={onChange} value={filter} />
+        <StyledInput
+          type="text"
+          onChange={e => debouncedOnChange(e.target.value)}
+        />
       </StyledLabel>
     </StyledForm>
   );
